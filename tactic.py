@@ -74,6 +74,20 @@ def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
     
     armies_number_below.append(armies_number)
     return armies_number_below
+
+#Returns true if there is an enemy troop in that territory
+#Returns false if the army is allied or there is no army
+def is_enemy_troop(player, loc):
+    for army in armies:
+        if army[0] == loc:
+            return player == army[1][0]
+    return false
+
+def is_enemy_fleet(player, loc):
+    for fleet in fleets:
+        if army[0] == loc:
+            return player == fleet[1][0]
+    return false
                     
 def add_to_list(original, new):
     if len(original) != len(new):
