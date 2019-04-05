@@ -2,17 +2,13 @@
 # EXAMPLE CODE BELOW
 
 from map import *
+from tactic import *
 
 context(ENGLAND)
 set('nor')
-set('bel')
-set('bre')
-fleet_move_failed('bar', 'stp_nc')
-fleet_support_move('nor', 'bar', 'stp_nc')
-fleet_move_failed('eng', 'bel')
-fleet_move('nao', 'mao')
-fleet_hold('nth')
-army_hold('bre')
+fleet_hold('nor')
+fleet_hold('lon')
+army_hold('yor')
 
 context(ITALY)
 set('tun')
@@ -26,6 +22,7 @@ army_support_move('mar', 'gas', 'spa')
 
 context(FRANCE)
 army_hold('par')
+fleet_hold('nth')
 dislodge('spa')
 fleet_move_failed('wes', 'tun')
 set('naf')
@@ -75,4 +72,5 @@ set('bul')
 set('ser')
 set('gre')
 
+print(roads_to_sc('ENG'))
 done()

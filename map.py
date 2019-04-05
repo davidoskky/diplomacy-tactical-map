@@ -147,22 +147,22 @@ def write_substitution_image(file, out, table):
             continue
         coord = DIP[army[0]][0][INDEX_COORD]
         land_owner = get(army[0])
-        army_owner = army[1][0]
+        army_owner = army[1]
         unit_img = img_army
         if land_owner != army_owner:
             img.paste(outline, (coord[0], coord[1]-15), outline)
-            img.paste(army[1][1], (coord[0]+1, coord[1]-14), mask)
+            img.paste(army[2], (coord[0]+1, coord[1]-14), mask)
         img.paste(unit_img, coord, unit_img)
     for fleet in fleets:
         if (fleet[0] in ldestroy or fleet[0] in ldislodge) and destroy_data[fleet[0]] == fleet[1]:
             continue
         coord = DIP[fleet[0]][0][INDEX_COORD]
         land_owner = get(fleet[0])
-        fleet_owner = fleet[1][0]
+        fleet_owner = fleet[1]
         unit_img = img_fleet
         if land_owner != fleet_owner:
             img.paste(outline, (coord[0], coord[1]-15), outline)
-            img.paste(fleet[1][1], (coord[0]+1, coord[1]-14), mask)
+            img.paste(fleet[2], (coord[0]+1, coord[1]-14), mask)
         img.paste(unit_img, coord, unit_img)
     if move_signs[0]:
         for loc in create_army:
@@ -280,29 +280,34 @@ def set_color(t, color):
         print("Cannot set color of the ocean '%s'" % t)
         raise SystemExit
     x = DIP[t]
-    init[x[INDEX_COLOR]] = color
+    init[x[0][INDEX_COLOR]] = color
 
 def get(t):
-    return land[t][0] if t in land else None
+    return land[t] if t in land else None
 
 @lcheck
 def set(t):
     x = DIP[t][0]
-    land[t] = Context.nation
+    land[t] = Context.nation[0]
     set_color(t, Context.nation[N_COLOR])
 
 @lcheck
 def army_hold(t):
     check_army_can_go(t)
-    armies.append((t, Context.nation))
+    tmp = []
+    tmp.append(t)
+    tmp.append(Context.nation[0])
+    tmp.append(Context.nation[1])
+    #armies.append((t, Context.nation))
+    armies.append(tmp)
     occupy(t)
 
 @lcheck
 def army_create(t):
     check_army_can_go(t)
     create_army.append(t)
-    armies.append((t, Context.nation))
-    occupy(t)
+    #armies.append((t, Context.nation))
+    army_hold(t)
 
 @lcheck
 def fleet_create(t):
@@ -318,7 +323,7 @@ def dislodge(t):
 @lcheck
 def destroy(t):
     ldestroy.append(t)
-    destroy_data[t] = Context.nation
+    destroy_data[t] = Context.nation[0]
 
 @lcheck
 def fleet_support_move(t, other, t2):
@@ -434,7 +439,12 @@ def army_move_failed(t, t2):
 @lcheck
 def fleet_hold(t):
     check_fleet_can_go(t)
-    fleets.append((t, Context.nation))
+    tmp = []
+    tmp.append(t)
+    tmp.append(Context.nation[0])
+    tmp.append(Context.nation[1])
+    #fleets.append((t, Context.nation))
+    fleets.append(tmp)
     occupy(t)
 
 for t in UNALIGNED:
