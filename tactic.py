@@ -32,6 +32,54 @@ def find_owned_army(owner):
         if fleet[1] == owner:
             owned.append(fleet[0])
     return owned
+
+#Returns the owner of a territory
+def find_owner(loc):
+    if loc in land:
+        return land[loc]
+    else:
+        for fleet in fleets:
+            if fleet[0] == loc:
+                return fleet[1]
+ 
+ #Returns how many moves you have to do from origin
+ #to reach destination. Returns -1 if it is impossible.           
+def find_way(origin, destination, can_fleet, can_army, max, steps):
+    if steps > max:
+        return -1
+    
+    if origin == destination:
+        return 0
+    
+    if is_land(origin) and can_army:
+        can_army = True
+    else:
+        can_army = False
+        
+    if is_coast_or_sea(origin) and can_fleet:
+        can_fleet = True
+    else:
+        can_fleet = False
+        
+    if not can_army and not can_fleet:
+        return -1
+    
+    borders = DIP[origin][1]
+    
+    min = max
+
+    for border in borders:
+        result = find_way(border, destination, can_fleet, can_army, min, steps+1)
+        
+        if result < min and result >= 0:
+            min = result
+    
+    if min < max:
+        return min+1
+    else:
+        return -1
+    
+    
             
 #Returns true if the territory is a supply center
 def is_sc(loc):
@@ -39,6 +87,31 @@ def is_sc(loc):
         return True
     else:
         return False
+
+#Returns the numerical superiority in 1, 2 and 3 turns of the enemy, assuming
+#all armies move towards the territory
+def sure_attacks(loc):
+    return
+    
+#Find all armies that can reach a territory in three turns and return how many
+#are allied and how many are enemies
+def find_armies(loc):
+    
+    owner = find_owner(loc)
+    
+    if is_land(loc) and can_army:
+        can_army = True
+    else:
+        can_army = False
+    
+    if is_coast_or_sea(loc) and can_fleet:
+        can_fleet = True
+    else:
+        can_fleet = False
+    
+    borders = DIP[loc][1]
+    
+    
 
 #Gives a rating to the defendability of all owned territories of a country.
 #It is solely based on how many attacks are possible in three turns
@@ -119,7 +192,7 @@ def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
     return armies_number_below
 
 #Returns true if there is an enemy troop in that territory
-#Returns false if the army is allied or there is no army
+#Returns false if the army is **allied** or there is no army
 def is_enemy_army(player, loc):
     for army in armies:
         if army[0] == loc:
