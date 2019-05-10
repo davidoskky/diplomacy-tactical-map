@@ -11,14 +11,14 @@ I've also written part of the algorithm for the attack but I'm still trying to i
 If you can program better than me (you probably can) and you want to help finish this project you can contact me, your help is welcome!
 
 NATION STRENGTH ALGORITHM
-[] Number of supply centers evaluation
-[] Border stability
-	[x] Roads to Supply Centers #Evaluates the number of open roads to one SC and the number of enemies in proximity
-	[]  Sure losses #Evaluates the number of sure losses in the borders
-	[]  Key territories under attack #Same as Roads to Supply Centers but for territories who border with 2 SC
-	[]  Locked armies #Evaluates the number of armies who cannot move as they have to defend or support
-	[]  Enemy Attack Potential
-[] Attack Potential
+- [] Number of supply centers evaluation
+- [] Border stability
+	- [x] Roads to Supply Centers #Evaluates the number of open roads to one SC and the number of enemies in proximity
+	- []  Sure losses #Evaluates the number of sure losses in the borders
+	- []  Key territories under attack #Same as Roads to Supply Centers but for territories who border with 2 SC
+	- []  Locked armies #Evaluates the number of armies who cannot move as they have to defend or support
+	- []  Enemy Attack Potential
+- [] Attack Potential
 	Still to be well defined
 
 If someone has advices to improve the algorithm I'd be happy to hear them!
