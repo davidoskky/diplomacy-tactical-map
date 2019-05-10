@@ -1,4 +1,4 @@
-#This project is still a work in progress.
+# This project is still a work in progress.
 It is based on diplomacy-mapper from ericl which allows drawing diplomacy maps.
 
 The tactical evaluator will have two main processes: attack potential and defence potential.
