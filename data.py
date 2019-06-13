@@ -28,7 +28,7 @@ def is_coast_or_sea(loc):
 def is_special(loc):
     return DIP[loc][0][INDEX_TYPEMASK] & SPECIAL
 
-def borders(loc):
+def find_borders(loc):
     return DIP[loc][1]
 
 DIP = {
