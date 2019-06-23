@@ -89,21 +89,50 @@ def is_sc(loc):
     else:
         return False
 
+
 # Returns the numerical superiority in 1, 2 and 3 turns of the enemy, assuming
 # all armies move towards the territory
-
-
 def sure_attacks(loc):
-    return
-
-
-# Find all armies that can reach a territory in three turns and return how many
-# are allied and how many are enemies
-def find_armies(loc):
 
     owner = find_owner(loc)
-    owner = owner
-    return
+    borders = find_borders(loc)
+    blocked = []
+    free = []
+    processing = []
+    allied = 1
+    enemy = 0
+    attacks = [False] * 3
+
+    for border in borders:
+        if border in occupied:
+            blocked.extend(border)
+            if is_allied(border, owner):
+                allied += 1
+            else:
+                enemy += 1
+        else:
+            free.extend(border)
+    if enemy > allied:
+        attacks[0] = True
+
+    # Yet to complete, does it make sense to only check for single attacks
+    # for getting near the territories?
+    # If recursive it would work properly?
+    # I got to remember which ones have moved somwhere else, might it make sense to
+    # create a new map for every iteration?
+    return attacks
+
+
+# Returns true if the army on the territory is one of
+# the players in the allies list
+def is_allied(loc, allies):
+
+    allied = False
+    owner = find_owner(loc)
+    if owner in allies:
+        allied = True
+
+    return allied
 
 
 # Gives a rating to the defendability of all owned territories of a country.
