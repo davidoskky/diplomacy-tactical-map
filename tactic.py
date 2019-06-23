@@ -92,6 +92,7 @@ def is_sc(loc):
 # Returns the numerical superiority in 1, 2 and 3 turns of the enemy, assuming
 # all armies move towards the territory
 
+
 def sure_attacks(loc):
     return
 
@@ -101,18 +102,8 @@ def sure_attacks(loc):
 def find_armies(loc):
 
     owner = find_owner(loc)
-
-    if is_land(loc) and can_army:
-        can_army = True
-    else:
-        can_army = False
-
-    if is_coast_or_sea(loc) and can_fleet:
-        can_fleet = True
-    else:
-        can_fleet = False
-
-    borders = find_borders(origin)
+    owner = owner
+    return
 
 
 # Gives a rating to the defendability of all owned territories of a country.
