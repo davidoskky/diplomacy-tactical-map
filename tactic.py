@@ -1,5 +1,5 @@
 from data import is_land, is_coast_or_sea, is_special, find_borders
-from map import land, get, armies, fleets, SUPPLY_CENTERS
+from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied
 done_borders = []   # Already checked if occupied
 calculated_borders = []  # Already called the function on it
 
@@ -130,12 +130,12 @@ def roads_to_sc(owner):
 
         territory_points.append(territory_point)
 
-
     return territory_points
 
 
-# It returns a list of lists with 4 values each: depth, free movable units, NOT IMPLEMENTED(
-# armies that can move after a movement to an adjacent territory by another unit, armies that can move
+# It returns a list of lists with 4 values each: depth, free movable units
+# armies that can move after a movement to an adjacent territory by another
+# unit, armies that can move
 # after a movement away from the attacking direction of another army)
 # It is ordered from highest distance to lowest one
 def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
@@ -169,7 +169,7 @@ def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
 
     for border in not_checked_borders:
         if border in occupied:
-            #if border not in done_borders:
+            # if border not in done_borders:
                 if is_army(border) and can_army:
                     armies_number[1] += 1
                 elif can_fleet:
@@ -179,7 +179,7 @@ def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
             armies_number_below = add_to_list(armies_number_below, temp_armies_below)
             calculated_borders.append(border)
 
-        #done_borders.append(border)
+        # done_borders.append(border)
 
     armies_number_below.append(armies_number)
     return armies_number_below
