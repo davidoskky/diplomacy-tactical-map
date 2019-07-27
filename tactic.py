@@ -43,6 +43,109 @@ def find_owner(loc):
             if fleet[0] == loc:
                 return fleet[1]
 
+# Uses the A* algorithm to return the fastest route.
+# It returns the reverse list of the path
+# If no path can be found it returns an empty list
+# Ignore_units allow ignoring units in the map
+def fastest_road(origin, destination, is_fleet, ignore_units):
+    open = []
+    open_values = []
+    close = []
+    close_values = []
+
+    # Stores name, g value, h value and parent
+    initial = [0, get_distance(origin, destination), '']
+    open.append(origin)
+    open_values.append(initial)
+    found = False
+
+    while not found and len(open) > 0:
+
+        # Find the lowest f value
+        lowest = 0
+        min = open_values[0][0] + open_values[0][1]
+        for i in range(len(open)):
+            if open_values[i][0] + open_values[i][1] < min:
+                min = open_values[i][0] + open_values[i][1]
+                lowest = i
+
+        # Switch the lowest to closed
+        close.append(open[lowest])
+        del open[lowest]
+        close_values.append(open_values[lowest])
+        del open_values[lowest]
+        if close[-1] == destination:
+            found = True
+            break
+
+        borders = find_borders(close[-1])
+        for border in borders:
+            if border not in close and (can_move(border, is_fleet) or (ignore_units and check_land(border, is_fleet))):
+                if border not in open:
+                    open.append(border)
+                    open_values.append([close_values[-1][0]+1, get_distance(border,destination), close[-1]])
+
+                else:
+                    index = open.index(border)
+                    if close_values[-1][0] + 1 < open_values[index][0]:
+                        # Set new g value and parent
+                        open_values[index][0] = close_values[-1][0] + 1
+                        open_values[index][2] = close[-1]
+
+    # Finds the reverse path
+    path = []
+    if found:
+        path.append(destination)
+        finished = False
+        while not finished:
+            parent = close_values[close.index(path[-1])][2]
+            if parent == origin:
+                finished = True
+            path.append(parent)
+
+    return path
+
+
+def can_move(territory, is_fleet):
+    if is_army(territory):
+        return False
+    elif is_coast_or_sea(territory) and is_fleet:
+        return True
+    elif is_land(territory) and not is_fleet:
+        return True
+    else:
+        return False
+
+def check_land(territory, is_fleet):
+    if is_coast_or_sea(territory) and is_fleet:
+        return True
+    elif is_land(territory) and not is_fleet:
+        return True
+    else:
+        return False
+
+
+# Get the minimum distance between two territories
+def get_distance(origin, destination):
+    evaluating = []
+    neighbors = []
+
+    evaluating.append(origin)
+    count = 0
+
+    while True:
+        for territory in evaluating:
+            # It ignores the difference amongst coasts
+            if territory[:3] == destination[:3]:
+                return count
+            borders = find_borders(territory)
+            for border in borders:
+                if border not in neighbors:
+                    neighbors.append(border)
+
+        count += 1
+        evaluating = neighbors.copy()
+        neighbors = []
 
 # Returns how many moves you have to do from origin
 # to reach destination. Returns -1 if it is impossible.
