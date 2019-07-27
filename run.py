@@ -72,5 +72,7 @@ set('bul')
 set('ser')
 set('gre')
 
+print(new_zombie_attack('bud'))
+print(new_roads_to_sc('ENG'))
 print(roads_to_sc('ENG'))
 done()
