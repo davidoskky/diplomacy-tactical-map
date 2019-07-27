@@ -8,7 +8,7 @@ can_attack = 6
 move_lvl_2 = 4
 move_displace_same = 3
 move_displace_away = 2
-move_lvl_3 = 1
+move_lvl_3 = 2
 
 
 # Finds SC and territories with an army of a country
@@ -47,7 +47,7 @@ def find_owner(loc):
 # It returns the reverse list of the path
 # If no path can be found it returns an empty list
 # Ignore_units allow ignoring units in the map
-def fastest_road(origin, destination, is_fleet, ignore_units):
+def find_road(origin, destination, is_fleet, ignore_units):
     open = []
     open_values = []
     close = []
@@ -80,7 +80,7 @@ def fastest_road(origin, destination, is_fleet, ignore_units):
 
         borders = find_borders(close[-1])
         for border in borders:
-            if border not in close and (can_move(border, is_fleet) or (ignore_units and check_land(border, is_fleet))):
+            if border not in close and (can_move(border, is_fleet) or (ignore_units and check_land(border, is_fleet)) or border == destination):
                 if border not in open:
                     open.append(border)
                     open_values.append([close_values[-1][0]+1, get_distance(border,destination), close[-1]])
@@ -209,15 +209,13 @@ def roads_to_sc(owner):
     territory_points = []
     for loc in owned:
         # We call the zombie attack blocking all the owned SC
-        armies_number = find_zombie_attack(loc, 3, True, True, find_owned_army(owner))
+        armies_number = new_zombie_attack(loc)
         points = 0
         print(armies_number)
 
-        points += move_lvl_3 * armies_number[0][1]
-        points += move_displace_away*armies_number[1][3]
-        points += move_displace_same*armies_number[1][2]
-        points += move_lvl_2*armies_number[1][1]
-        points += can_attack*armies_number[2][1]
+        points += move_lvl_3 * armies_number[2]
+        points += move_lvl_2 * armies_number[1]
+        points += can_attack * armies_number[0]
 
         territory_point = []
         territory_point.append(loc)
@@ -228,56 +226,27 @@ def roads_to_sc(owner):
     return territory_points
 
 
-# It returns a list of lists with 4 values each: depth, free movable units
-# armies that can move after a movement to an adjacent territory by another
-# unit, armies that can move
-# after a movement away from the attacking direction of another army)
-# It is ordered from highest distance to lowest one
-def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
-    if depth == 0:
-        return
+# It returns a list of numbers, meaning how many can attack in the fist turn
+# How many in the second and how many in the third
+# This are not stacked!!
+def zombie_attack(target):
+    list_attackers = []
+    attackers = [0, 0, 0]
+    for territory in occupied:
+        if get_distance(territory, target) < 3:
+            if is_enemy(find_owner(target), territory):
+                list_attackers.append(territory)
 
-    if is_land(loc) and can_army:
-        can_army = True
-    else:
-        can_army = False
+    for territory in list_attackers:
+        distance = len(find_road(territory, target, not is_army(territory), False))-1
+        if distance == 1:
+            attackers[0] += 1
+        elif distance == 2:
+            attackers[1] += 1
+        elif distance == 3:
+            attackers[2] += 1
 
-    if is_coast_or_sea(loc) and can_fleet:
-        can_fleet = True
-    else:
-        can_fleet = False
-
-    borders = find_borders(loc)
-
-
-# Prevents going back to territories near the objective
-    previous_borders = []
-    previous_borders.extend(borders)
-    previous_borders.extend(blocked)
-
-    armies_number = [4-depth, 0, 0, 0]  # Stores number of army movements
-    armies_number_below = []    # Stores results of iterative calls
-
-    # Check borders for armies and fleets
-
-    not_checked_borders = [item for item in borders if item not in blocked]
-
-    for border in not_checked_borders:
-        if border in occupied:
-            # if border not in done_borders:
-                if is_army(border) and can_army:
-                    armies_number[1] += 1
-                elif can_fleet:
-                    armies_number[1] += 1
-        elif depth > 1:
-            temp_armies_below = find_zombie_attack(border, depth-1, can_army, can_fleet, previous_borders)
-            armies_number_below = add_to_list(armies_number_below, temp_armies_below)
-            calculated_borders.append(border)
-
-        # done_borders.append(border)
-
-    armies_number_below.append(armies_number)
-    return armies_number_below
+    return attackers
 
 
 # Returns true if there is an enemy troop in that territory
@@ -285,10 +254,10 @@ def find_zombie_attack(loc, depth, can_army, can_fleet, blocked):
 def is_enemy(player, loc):
     for army in armies:
         if army[0] == loc:
-            return player == army[1]
+            return player != army[1]
     for fleet in fleets:
-        if army[0] == loc:
-            return player == fleet[1]
+        if fleet[0] == loc:
+            return player != fleet[1]
     return False
 
 
