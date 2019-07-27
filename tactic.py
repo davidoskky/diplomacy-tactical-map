@@ -147,43 +147,6 @@ def get_distance(origin, destination):
         evaluating = neighbors.copy()
         neighbors = []
 
-# Returns how many moves you have to do from origin
-# to reach destination. Returns -1 if it is impossible.
-def find_way(origin, destination, can_fleet, can_army, max, steps):
-    if steps > max:
-        return -1
-
-    if origin == destination:
-        return 0
-
-    if is_land(origin) and can_army:
-        can_army = True
-    else:
-        can_army = False
-
-    if is_coast_or_sea(origin) and can_fleet:
-        can_fleet = True
-    else:
-        can_fleet = False
-
-    if not can_army and not can_fleet:
-        return -1
-
-    borders = find_borders(origin)
-
-    min = max
-
-    for border in borders:
-        result = find_way(border, destination, can_fleet, can_army, min, steps+1)
-
-        if result < min and result >= 0:
-            min = result
-
-    if min < max:
-        return min+1
-    else:
-        return -1
-
 
 # Returns true if the territory is a supply center
 def is_sc(loc):
