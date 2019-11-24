@@ -8,9 +8,11 @@ calculated_borders = []  # Already called the function on it
 
 # Points given to armies at different positions from the considered territory
 # 3 level multidecision priorities
-can_attack = 0.55
-move_lvl_2 = 0.27
-move_lvl_3 = 0.18
+sure_attack = 0.44
+sure_attack2 = 0.22
+can_attack = 0.14
+move_lvl_2 = 0.11
+move_lvl_3 = 0.09
 move_displace_same = 3
 move_displace_away = 2
 
@@ -104,8 +106,6 @@ def find_road(origin, destination, is_fleet, ignore_units):
         path.append(destination)
         finished = False
         while not finished:
-            print(close_values)
-            print(close)
             parent = close_values[close.index(path[-1])][2]
             if parent == origin:
                 finished = True
@@ -165,29 +165,50 @@ def is_sc(loc):
         return False
 
 
-# Returns the numerical superiority in 1, 2 and 3 turns of the enemy, assuming
+# Returns the numerical superiority in 1 and 2 turns of the enemy, assuming
 # all armies move towards the territory
 def sure_attacks(loc):
 
     owner = find_owner(loc)
     borders = find_borders(loc)
-    blocked = []
-    free = []
-    allied = 1
     enemy = 0
-    attacks = [False] * 3
+    attacks = [0] * 3
+    borders2 = []
+
+    if loc in occupied and is_allied(loc, owner):
+        allied = 1
+    else:
+        allied = 0
 
     for border in borders:
         if border in occupied:
-            blocked.extend(border)
             if is_allied(border, owner):
                 allied += 1
             else:
                 enemy += 1
-        else:
-            free.extend(border)
     if enemy > allied:
-        attacks[0] = True
+        # Giving the score to the territory
+        attacks[0] = sure_attack*(enemy-allied)
+
+    # Finding the second borders
+    for border in borders:
+        neighbors = find_borders(border)
+        for neighbor in neighbors:
+            if neighbor is not loc and neighbor not in borders2 and neighbor not in borders:
+                borders2.append(neighbor)
+
+    for border in borders2:
+        if border in occupied:
+            path = find_road(border, loc, not is_army(border), False)
+            # Check that the distance is actually 2
+            if len(path) == 3:
+                if is_allied(border, owner):
+                    allied += 1
+                else:
+                    enemy += 1
+    if enemy > allied:
+        # Giving the score to the territory
+        attacks[1] = sure_attack2*(enemy-allied)
 
     # Yet to complete, does it make sense to only check for single attacks
     # for getting near the territories?
@@ -217,9 +238,12 @@ def roads_to_sc(owner):
     territory_points = []
     for loc in owned:
         # We call the zombie attack blocking all the owned SC
+        attack_score = sure_attacks(loc)
         armies_number = zombie_attack(loc)
         score = 0
 
+        score += attack_score[0]
+        score += attack_score[1]
         score += move_lvl_3 * armies_number[2]
         score += move_lvl_2 * armies_number[1]
         score += can_attack * armies_number[0]
