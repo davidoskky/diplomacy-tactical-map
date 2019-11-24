@@ -190,6 +190,11 @@ def sure_attacks(loc):
         # Giving the score to the territory
         attacks[0] = sure_attack*(enemy-allied)
 
+    # Increase the score if the territory is occupied
+    if loc in occupied and not is_allied(loc, owner):
+        attacks[0] += sure_attack
+        attacks[0] *= 2
+
     # Finding the second borders
     for border in borders:
         neighbors = find_borders(border)
@@ -263,7 +268,7 @@ def zombie_attack(target):
     attackers = [0, 0, 0]
     for territory in occupied:
         if get_distance(territory, target) < 3:
-            if is_enemy(find_owner(target), territory):
+            if is_enemy(find_owner(target), territory) and territory is not target:
                 list_attackers.append(territory)
 
     for territory in list_attackers:
