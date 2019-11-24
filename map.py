@@ -482,4 +482,3 @@ for t in DEFAULT_RUSSIA:
 def done():
     assert_one_unit_per_loc()
     write_substitution_image(IMAGE_MAP, 'out.png', init)
-    write_substitution_image(IMAGE_MAP, 'out2.png', color_tactics)

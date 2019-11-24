@@ -190,10 +190,18 @@ def sure_attacks(loc):
         # Giving the score to the territory
         attacks[0] = sure_attack*(enemy-allied)
 
-    # Increase the score if the territory is occupied
+    # Increase the score if the territory is occupied by an enemy
     if loc in occupied and not is_allied(loc, owner):
         attacks[0] += sure_attack
         attacks[0] *= 2
+
+    # Increase score if the territory is not defended
+    if loc not in occupied:
+        attacks[0] *= 1.5
+        if enemy == allied:
+            attacks[0] += sure_attack2
+
+    print(loc + ' ' + str(attacks[0]))
 
     # Finding the second borders
     for border in borders:
@@ -340,7 +348,8 @@ def owner_color(owner):
     max = 0
     # Scaling of the score between 0 and 1
     for territory in territories:
-        if territory[1] > max:
+        # It's impossible to color the ocean with this image, I should get around making a new one
+        if territory[1] > max and is_land(territory[0]):
             max = territory[1]
     for territory in territories:
         territory[1] = territory[1]/max
@@ -352,7 +361,7 @@ def owner_color(owner):
         if is_land(territory[0]):
             set_color2(territory[0], (255, green, 0))
 
-        write_substitution_image(IMAGE_MAP, owner+'.png', color_tactics)
+    write_substitution_image(IMAGE_MAP, owner+'.png', color_tactics)
     return
 
 
