@@ -188,6 +188,7 @@ N_COLOR = 1
 N_NAME = 0
 
 init = {}
+color_tactics = {}
 move_signs = [True]
 armies = []
 create_army = []
@@ -281,6 +282,13 @@ def set_color(t, color):
         raise SystemExit
     x = DIP[t]
     init[x[0][INDEX_COLOR]] = color
+
+def set_color2(t, color):
+    if not is_land(t):
+        print("Cannot set color of the ocean '%s'" % t)
+        raise SystemExit
+    x = DIP[t]
+    color_tactics[x[0][INDEX_COLOR]] = color
 
 def get(t):
     return land[t] if t in land else None
@@ -474,3 +482,4 @@ for t in DEFAULT_RUSSIA:
 def done():
     assert_one_unit_per_loc()
     write_substitution_image(IMAGE_MAP, 'out.png', init)
+    write_substitution_image(IMAGE_MAP, 'out2.png', color_tactics)

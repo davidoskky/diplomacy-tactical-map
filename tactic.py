@@ -1,14 +1,16 @@
-from data import is_land, is_coast_or_sea, is_special, find_borders
-from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied
+from data import is_land, is_coast_or_sea, is_special, find_borders, UNALIGNED, DEFAULT_AUSTRIA, DEFAULT_ENGLAND, DEFAULT_FRANCE
+from data import DEFAULT_GERMANY, DEFAULT_ITALY, DEFAULT_RUSSIA, DEFAULT_TURKEY, COLOR_NEUTRAL
+from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied, set_color2, write_substitution_image, IMAGE_MAP, color_tactics
 done_borders = []   # Already checked if occupied
 calculated_borders = []  # Already called the function on it
 
 # Points given to armies at different positions from the considered territory
-can_attack = 6
-move_lvl_2 = 4
+# 3 level multidecision priorities
+can_attack = 0.55
+move_lvl_2 = 0.27
+move_lvl_3 = 0.18
 move_displace_same = 3
 move_displace_away = 2
-move_lvl_3 = 2
 
 
 # Finds SC and territories with an army of a country
@@ -98,6 +100,8 @@ def find_road(origin, destination, is_fleet, ignore_units):
         path.append(destination)
         finished = False
         while not finished:
+            print(close_values)
+            print(close)
             parent = close_values[close.index(path[-1])][2]
             if parent == origin:
                 finished = True
@@ -209,17 +213,16 @@ def roads_to_sc(owner):
     territory_points = []
     for loc in owned:
         # We call the zombie attack blocking all the owned SC
-        armies_number = new_zombie_attack(loc)
-        points = 0
-        print(armies_number)
+        armies_number = zombie_attack(loc)
+        score = 0
 
-        points += move_lvl_3 * armies_number[2]
-        points += move_lvl_2 * armies_number[1]
-        points += can_attack * armies_number[0]
+        score += move_lvl_3 * armies_number[2]
+        score += move_lvl_2 * armies_number[1]
+        score += can_attack * armies_number[0]
 
         territory_point = []
         territory_point.append(loc)
-        territory_point.append(points)
+        territory_point.append(score)
 
         territory_points.append(territory_point)
 
@@ -280,3 +283,47 @@ def is_army(loc):
             army_found = True
 
     return army_found
+
+# Creates the array of colours for the owner
+def owner_color(owner):
+    # All territories are set to default color
+    for loc in UNALIGNED:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_TURKEY:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_RUSSIA:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_ITALY:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_GERMANY:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_FRANCE:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_ENGLAND:
+        set_color2(loc, COLOR_NEUTRAL)
+    for loc in DEFAULT_AUSTRIA:
+        set_color2(loc, COLOR_NEUTRAL)
+
+    territories = roads_to_sc(owner)
+    max = 0
+    # Scaling of the score between 0 and 1
+    for territory in territories:
+        if territory[1] > max:
+            max = territory[1]
+    for territory in territories:
+        territory[1] = territory[1]/max
+        # Scaling the values between 0 and 200 for the green values
+        green = int(-200*territory[1] + 200)
+
+        # Sets the shade of red of the territory
+        # Red is always max, the green dims the color
+        if is_land(territory[0]):
+            set_color2(territory[0], (255,green,0))
+
+        write_substitution_image(IMAGE_MAP, owner+'.png', color_tactics)
+    return
+
+def tactical_map():
+    for owner in ['ENG', 'TUR', 'AUS', 'ITA', 'RUS', 'GER', 'FRA']:
+        owner_color(owner)
+    return

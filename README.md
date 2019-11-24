@@ -2,7 +2,7 @@
 It is based on diplomacy-mapper from ericl which allows drawing diplomacy maps.
 
 The tactical evaluator will have two main processes: attack potential and defence potential.
-For each nation two maps will get created one coulored for best places to attack and the other for places lacking defence.
+For each nation two maps will get created one colored for best places to attack and the other for places lacking defence.
 
 The algorithm for the defence calculator is pretty much ready, I'm trying to implement it, but it takes time as I'm no programmer.
 
@@ -20,6 +20,9 @@ NATION STRENGTH ALGORITHM
 	- [ ]  Enemy Attack Potential
 - [ ] Attack Potential
 	Still to be well defined
+
+PROBLEMS
+- The A* algorithm doesn't behave well when there are dislodgements or deletions, it's not so important, but it could be fixed!
 
 If someone has advices to improve the algorithm I'd be happy to hear them!
 
