@@ -49,6 +49,19 @@ def find_owner(loc):
             if fleet[0] == loc:
                 return fleet[1]
 
+def find_army_owner(loc):
+    if loc in occupied:
+        for army in armies:
+            if army[0] == loc:
+                return army[1]
+    if loc in land:
+        return land[loc]
+    else:
+        for fleet in fleets:
+            if fleet[0] == loc:
+                return fleet[1]
+
+
 
 # Uses the A* algorithm to return the fastest route.
 # It returns the reverse list of the path
@@ -175,14 +188,14 @@ def sure_attacks(loc):
     attacks = [0] * 3
     borders2 = []
 
-    if loc in occupied and is_allied(loc, owner):
+    if loc in occupied and is_allied_army(loc, owner):
         allied = 1
     else:
         allied = 0
 
     for border in borders:
         if border in occupied:
-            if is_allied(border, owner):
+            if is_allied_army(border, owner):
                 allied += 1
             else:
                 enemy += 1
@@ -191,7 +204,7 @@ def sure_attacks(loc):
         attacks[0] = sure_attack*(enemy-allied)
 
     # Increase the score if the territory is occupied by an enemy
-    if loc in occupied and not is_allied(loc, owner):
+    if loc in occupied and not is_allied_army(loc, owner):
         attacks[0] += sure_attack
         attacks[0] *= 2
 
@@ -200,8 +213,6 @@ def sure_attacks(loc):
         attacks[0] *= 1.5
         if enemy == allied:
             attacks[0] += sure_attack2
-
-    print(loc + ' ' + str(attacks[0]))
 
     # Finding the second borders
     for border in borders:
@@ -215,7 +226,7 @@ def sure_attacks(loc):
             path = find_road(border, loc, not is_army(border), False)
             # Check that the distance is actually 2
             if len(path) == 3:
-                if is_allied(border, owner):
+                if is_allied_army(border, owner):
                     allied += 1
                 else:
                     enemy += 1
@@ -242,6 +253,15 @@ def is_allied(loc, allies):
 
     return allied
 
+
+def is_allied_army(loc, allies):
+
+    allied = False
+    owner = find_army_owner(loc)
+    if owner in allies:
+        allied = True
+
+    return allied
 
 # Gives a rating to the defendability of all owned territories of a country.
 # It is solely based on how many attacks are possible in three turns
