@@ -1,6 +1,8 @@
-from data import is_land, is_coast_or_sea, is_special, find_borders, UNALIGNED, DEFAULT_AUSTRIA, DEFAULT_ENGLAND, DEFAULT_FRANCE
-from data import DEFAULT_GERMANY, DEFAULT_ITALY, DEFAULT_RUSSIA, DEFAULT_TURKEY, COLOR_NEUTRAL
-from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied, set_color2, write_substitution_image, IMAGE_MAP, color_tactics
+from data import DEFAULT_GERMANY, DEFAULT_ITALY, DEFAULT_RUSSIA, DEFAULT_TURKEY, COLOR_NEUTRAL, DEFAULT_FRANCE
+from data import is_land, is_coast_or_sea, find_borders, UNALIGNED, DEFAULT_AUSTRIA, DEFAULT_ENGLAND
+from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied, set_color2, write_substitution_image, IMAGE_MAP, \
+    color_tactics
+
 done_borders = []   # Already checked if occupied
 calculated_borders = []  # Already called the function on it
 
@@ -45,6 +47,7 @@ def find_owner(loc):
             if fleet[0] == loc:
                 return fleet[1]
 
+
 # Uses the A* algorithm to return the fastest route.
 # It returns the reverse list of the path
 # If no path can be found it returns an empty list
@@ -82,10 +85,11 @@ def find_road(origin, destination, is_fleet, ignore_units):
 
         borders = find_borders(close[-1])
         for border in borders:
-            if border not in close and (can_move(border, is_fleet) or (ignore_units and check_land(border, is_fleet)) or border == destination):
+            if not (not (border not in close) or not (can_move(border, is_fleet) or (
+                    ignore_units and check_land(border, is_fleet)) or border == destination)):
                 if border not in open:
                     open.append(border)
-                    open_values.append([close_values[-1][0]+1, get_distance(border,destination), close[-1]])
+                    open_values.append([close_values[-1][0]+1, get_distance(border, destination), close[-1]])
 
                 else:
                     index = open.index(border)
@@ -119,6 +123,7 @@ def can_move(territory, is_fleet):
         return True
     else:
         return False
+
 
 def check_land(territory, is_fleet):
     if is_coast_or_sea(territory) and is_fleet:
@@ -168,7 +173,6 @@ def sure_attacks(loc):
     borders = find_borders(loc)
     blocked = []
     free = []
-    processing = []
     allied = 1
     enemy = 0
     attacks = [False] * 3
@@ -188,7 +192,7 @@ def sure_attacks(loc):
     # Yet to complete, does it make sense to only check for single attacks
     # for getting near the territories?
     # If recursive it would work properly?
-    # I got to remember which ones have moved somwhere else, might it make sense to
+    # I got to remember which ones have moved somewhere else, might it make sense to
     # create a new map for every iteration?
     return attacks
 
@@ -220,9 +224,7 @@ def roads_to_sc(owner):
         score += move_lvl_2 * armies_number[1]
         score += can_attack * armies_number[0]
 
-        territory_point = []
-        territory_point.append(loc)
-        territory_point.append(score)
+        territory_point = [loc, score]
 
         territory_points.append(territory_point)
 
@@ -231,7 +233,7 @@ def roads_to_sc(owner):
 
 # It returns a list of numbers, meaning how many can attack in the fist turn
 # How many in the second and how many in the third
-# This are not stacked!!
+# These are not stacked!!
 def zombie_attack(target):
     list_attackers = []
     attackers = [0, 0, 0]
@@ -284,6 +286,7 @@ def is_army(loc):
 
     return army_found
 
+
 # Creates the array of colours for the owner
 def owner_color(owner):
     # All territories are set to default color
@@ -318,10 +321,11 @@ def owner_color(owner):
         # Sets the shade of red of the territory
         # Red is always max, the green dims the color
         if is_land(territory[0]):
-            set_color2(territory[0], (255,green,0))
+            set_color2(territory[0], (255, green, 0))
 
         write_substitution_image(IMAGE_MAP, owner+'.png', color_tactics)
     return
+
 
 def tactical_map():
     for owner in ['ENG', 'TUR', 'AUS', 'ITA', 'RUS', 'GER', 'FRA']:
