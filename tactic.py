@@ -180,10 +180,8 @@ def is_sc(loc):
 
 # Returns the numerical superiority in 1 and 2 turns of the enemy, assuming
 # all armies move towards the territory
-def sure_attacks(loc):
-    print(loc)
+def sure_attacks(loc, owner):
 
-    owner = find_owner(loc)
     borders = find_borders(loc)
     enemy = 0
     attacks = [0] * 3
@@ -272,7 +270,7 @@ def roads_to_sc(owner):
     territory_points = []
     for loc in owned:
         # We call the zombie attack blocking all the owned SC
-        attack_score = sure_attacks(loc)
+        attack_score = sure_attacks(loc, owner)
         armies_number = zombie_attack(loc)
         score = 0
 
