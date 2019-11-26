@@ -181,6 +181,7 @@ def is_sc(loc):
 # Returns the numerical superiority in 1 and 2 turns of the enemy, assuming
 # all armies move towards the territory
 def sure_attacks(loc):
+    print(loc)
 
     owner = find_owner(loc)
     borders = find_borders(loc)
@@ -211,7 +212,7 @@ def sure_attacks(loc):
     # Increase score if the territory is not defended
     if loc not in occupied:
         attacks[0] *= 1.5
-        if enemy == allied:
+        if enemy == allied and enemy > 0:
             attacks[0] += sure_attack2
 
     # Finding the second borders
