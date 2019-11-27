@@ -1,13 +1,13 @@
-from data import DEFAULT_GERMANY, DEFAULT_ITALY, DEFAULT_RUSSIA, DEFAULT_TURKEY, COLOR_NEUTRAL, DEFAULT_FRANCE
-from data import is_land, is_coast_or_sea, find_borders, UNALIGNED, DEFAULT_AUSTRIA, DEFAULT_ENGLAND
+from data import DEFAULT_GERMANY, DEFAULT_ITALY, DEFAULT_RUSSIA, DEFAULT_TURKEY, COLOR_NEUTRAL, DEFAULT_FRANCE, is_land, \
+    is_coast_or_sea, find_borders, UNALIGNED, DEFAULT_AUSTRIA, DEFAULT_ENGLAND, find_sea_borders
 from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied, set_color2, write_substitution_image, IMAGE_MAP, \
     color_tactics
 
-done_borders = []   # Already checked if occupied
+done_borders = []  # Already checked if occupied
 calculated_borders = []  # Already called the function on it
 
 # Points given to armies at different positions from the considered territory
-# 3 level multidecision priorities
+# level multidecision priorities
 sure_attack = 0.44
 sure_attack2 = 0.22
 can_attack = 0.14
@@ -49,6 +49,7 @@ def find_owner(loc):
             if fleet[0] == loc:
                 return fleet[1]
 
+
 def find_army_owner(loc):
     if loc in occupied:
         for army in armies:
@@ -60,7 +61,6 @@ def find_army_owner(loc):
         for fleet in fleets:
             if fleet[0] == loc:
                 return fleet[1]
-
 
 
 # Uses the A* algorithm to return the fastest route.
@@ -98,13 +98,17 @@ def find_road(origin, destination, is_fleet, ignore_units):
             found = True
             break
 
-        borders = find_borders(close[-1])
+        if not is_fleet:
+            borders = find_borders(close[-1])
+        else:
+            borders = find_sea_borders(close[-1])
+
         for border in borders:
-            if not (not (border not in close) or not (can_move(border, is_fleet) or (
+            if not (not (border not in close) or not (can_move(border, close[-1], is_fleet) or (
                     ignore_units and check_land(border, is_fleet)) or border == destination)):
                 if border not in open:
                     open.append(border)
-                    open_values.append([close_values[-1][0]+1, get_distance(border, destination), close[-1]])
+                    open_values.append([close_values[-1][0] + 1, get_distance(border, destination), close[-1]])
 
                 else:
                     index = open.index(border)
@@ -127,11 +131,14 @@ def find_road(origin, destination, is_fleet, ignore_units):
     return path
 
 
-def can_move(territory, is_fleet):
+def can_move(territory, origin, is_fleet):
     if is_army(territory):
         return False
     elif is_coast_or_sea(territory) and is_fleet:
-        return True
+        if territory in find_sea_borders(origin):
+            return True
+        else:
+            return False
     elif is_land(territory) and not is_fleet:
         return True
     else:
@@ -181,7 +188,6 @@ def is_sc(loc):
 # Returns the numerical superiority in 1 and 2 turns of the enemy, assuming
 # all armies move towards the territory
 def sure_attacks(loc, owner):
-
     borders = find_borders(loc)
     enemy = 0
     attacks = [0] * 3
@@ -200,7 +206,7 @@ def sure_attacks(loc, owner):
                 enemy += 1
     if enemy > allied:
         # Giving the score to the territory
-        attacks[0] = sure_attack*(enemy-allied)
+        attacks[0] = sure_attack * (enemy - allied)
 
     # Increase the score if the territory is occupied by an enemy
     if loc in occupied and not is_allied_army(loc, owner):
@@ -210,8 +216,10 @@ def sure_attacks(loc, owner):
     # Increase score if the territory is not defended
     if loc not in occupied:
         attacks[0] *= 1.5
-        if enemy == allied and enemy > 0:
+        if enemy == allied and enemy != 0:
             attacks[0] += sure_attack2
+        elif enemy < allied:
+            attacks[0] += sure_attack2 / 2
 
     # Finding the second borders
     for border in borders:
@@ -231,7 +239,7 @@ def sure_attacks(loc, owner):
                     enemy += 1
     if enemy > allied:
         # Giving the score to the territory
-        attacks[1] = sure_attack2*(enemy-allied)
+        attacks[1] = sure_attack2 * (enemy - allied)
 
     # Yet to complete, does it make sense to only check for single attacks
     # for getting near the territories?
@@ -244,7 +252,6 @@ def sure_attacks(loc, owner):
 # Returns true if the army on the territory is one of
 # the players in the allies list
 def is_allied(loc, allies):
-
     allied = False
     owner = find_owner(loc)
     if owner in allies:
@@ -254,13 +261,13 @@ def is_allied(loc, allies):
 
 
 def is_allied_army(loc, allies):
-
     allied = False
     owner = find_army_owner(loc)
     if owner in allies:
         allied = True
 
     return allied
+
 
 # Gives a rating to the defendability of all owned territories of a country.
 # It is solely based on how many attacks are possible in three turns
@@ -299,7 +306,7 @@ def zombie_attack(target):
                 list_attackers.append(territory)
 
     for territory in list_attackers:
-        distance = len(find_road(territory, target, not is_army(territory), False))-1
+        distance = len(find_road(territory, target, not is_army(territory), False)) - 1
         if distance == 1:
             attackers[0] += 1
         elif distance == 2:
@@ -371,16 +378,16 @@ def owner_color(owner):
         if territory[1] > max and is_land(territory[0]):
             max = territory[1]
     for territory in territories:
-        territory[1] = territory[1]/max
+        territory[1] = territory[1] / max
         # Scaling the values between 0 and 200 for the green values
-        green = int(-200*territory[1] + 200)
+        green = int(-200 * territory[1] + 200)
 
         # Sets the shade of red of the territory
         # Red is always max, the green dims the color
         if is_land(territory[0]):
             set_color2(territory[0], (255, green, 0))
 
-    write_substitution_image(IMAGE_MAP, owner+'.png', color_tactics)
+    write_substitution_image(IMAGE_MAP, owner + '.png', color_tactics)
     return
 
 
