@@ -2,6 +2,8 @@ from data import DEFAULT_GERMANY, DEFAULT_ITALY, DEFAULT_RUSSIA, DEFAULT_TURKEY,
     is_coast_or_sea, find_borders, UNALIGNED, DEFAULT_AUSTRIA, DEFAULT_ENGLAND, find_sea_borders
 from map import land, get, armies, fleets, SUPPLY_CENTERS, occupied, set_color2, write_substitution_image, IMAGE_MAP, \
     color_tactics
+import numpy as np
+from sklearn.preprocessing import minmax_scale
 
 done_borders = []  # Already checked if occupied
 calculated_borders = []  # Already called the function on it
@@ -200,26 +202,28 @@ def sure_attacks(loc, owner):
 
     for border in borders:
         if border in occupied:
-            if is_allied_army(border, owner):
-                allied += 1
-            else:
-                enemy += 1
+            path = find_road(border, loc, not is_army(border), True)
+            # Check that the distance is actually 1
+            if len(path) == 2:
+                if is_allied_army(border, owner):
+                    allied += 1
+                else:
+                    enemy += 1
     if enemy > allied:
         # Giving the score to the territory
-        attacks[0] = sure_attack * (enemy - allied)
+        attacks[0] = enemy - allied
 
     # Increase the score if the territory is occupied by an enemy
     if loc in occupied and not is_allied_army(loc, owner):
-        attacks[0] += sure_attack
         attacks[0] *= 2
 
     # Increase score if the territory is not defended
-    if loc not in occupied:
+    elif loc not in occupied:
         attacks[0] *= 1.5
         if enemy == allied and enemy != 0:
-            attacks[0] += sure_attack2
+            attacks[1] += 1
         elif enemy < allied:
-            attacks[0] += sure_attack2 / 2
+            attacks[1] += 0.5
 
     # Finding the second borders
     for border in borders:
@@ -239,7 +243,7 @@ def sure_attacks(loc, owner):
                     enemy += 1
     if enemy > allied:
         # Giving the score to the territory
-        attacks[1] = sure_attack2 * (enemy - allied)
+        attacks[1] = enemy - allied
 
     # Yet to complete, does it make sense to only check for single attacks
     # for getting near the territories?
@@ -274,24 +278,37 @@ def is_allied_army(loc, allies):
 # Assuming everyone attacks you and you do not move
 def roads_to_sc(owner):
     owned = find_owned(owner)
-    territory_points = []
-    for loc in owned:
+    score_matrix = np.zeros((len(owned), 5))
+
+    for num,loc in enumerate(owned):
         # We call the zombie attack blocking all the owned SC
         attack_score = sure_attacks(loc, owner)
         armies_number = zombie_attack(loc)
-        score = 0
 
-        score += attack_score[0]
-        score += attack_score[1]
-        score += move_lvl_3 * armies_number[2]
-        score += move_lvl_2 * armies_number[1]
-        score += can_attack * armies_number[0]
+        score_matrix[num][0] = attack_score[0]
+        score_matrix[num][1] = attack_score[1]
+        score_matrix[num][2] = armies_number[2]
+        score_matrix[num][3] = armies_number[1]
+        score_matrix[num][4] = armies_number[0]
 
-        territory_point = [loc, score]
+    # Normalize the matrix
+    # Multiplying for the weights
+    score_matrix[:,0] *= sure_attack
+    score_matrix[:,1] *= sure_attack
+    score_matrix[:,2] *= move_lvl_3
+    score_matrix[:,3] *= move_lvl_2
+    score_matrix[:,4] *= can_attack
+    # Sum all the scores and normalize
+    score = np.sum(score_matrix, 1)
 
-        territory_points.append(territory_point)
+    # It's impossible to color the ocean with this image, I should get around making a new one
+    for num,territory in enumerate(owned):
+        if not is_land(territory):
+            score[num] = 0
 
-    return territory_points
+    # Scale the score between 0 and 1
+    score = minmax_scale(score, copy=False)
+    return  score
 
 
 # It returns a list of numbers, meaning how many can attack in the fist turn
@@ -370,22 +387,18 @@ def owner_color(owner):
     for loc in DEFAULT_AUSTRIA:
         set_color2(loc, COLOR_NEUTRAL)
 
-    territories = roads_to_sc(owner)
-    max = 0
-    # Scaling of the score between 0 and 1
-    for territory in territories:
-        # It's impossible to color the ocean with this image, I should get around making a new one
-        if territory[1] > max and is_land(territory[0]):
-            max = territory[1]
-    for territory in territories:
-        territory[1] = territory[1] / max
-        # Scaling the values between 0 and 200 for the green values
-        green = int(-200 * territory[1] + 200)
+    territories = find_owned(owner)
+    score = roads_to_sc(owner)
 
+    # Scaling the values between 0 and 200 for the green values
+    # The score modulates the intensity of green, the lower the most yellow, the higher the most red
+    score = minmax_scale(-score, feature_range=(0, 200), copy=False)
+    score = score.astype(int)
+    for num,territory in enumerate(territories):
         # Sets the shade of red of the territory
         # Red is always max, the green dims the color
-        if is_land(territory[0]):
-            set_color2(territory[0], (255, green, 0))
+        if is_land(territory):
+            set_color2(territory, (255, score[num], 0))
 
     write_substitution_image(IMAGE_MAP, owner + '.png', color_tactics)
     return
