@@ -1,4 +1,6 @@
 # This project is still a work in progress.
+It is usable, though some inaccurate results may occur, it is an helpful tool in the hands of an experienced player.
+
 It is based on diplomacy-mapper from ericl which allows drawing diplomacy maps.
 
 The tactical evaluator will have two main processes: attack potential and defence potential.
@@ -23,6 +25,8 @@ NATION STRENGTH ALGORITHM
 
 PROBLEMS
 - The A* algorithm doesn't behave well when there are dislodgements or deletions, it's not so important, but it could be fixed!
+- It would be nice to have another A* algorithm, based on the score of the territories
+- It would be best to have a training set to decide how is best to scale the data, this way it cannot be scaled
 
 If someone has advices to improve the algorithm I'd be happy to hear them!
 
@@ -36,8 +40,15 @@ Usage:
 	The following sequence of commands in python:
 		from map import *
 		[commands]
+		tactical_map()
 		done()
 	will write a file called 'out.png' in this directory.
+	The tactical analysis will be in 7 different png files, for each nation
+	
+	If you only want the image of a single nation substitute tactical_map() with:
+	owner_color('NAT')
+	
+	Where NAT are the first 3 capital letters of the nation.
 
 	Run 'run.py' to see an example rendering.
 
@@ -92,4 +103,6 @@ List of commands:
 	army_move_failed(loc, dest)
 	army_support_hold(loc, dest)
 	army_support_move(loc, attacker, dest)
+	
+	In order to obtain an accurate tactical analysis, please only use set(), army_hold() and fleet_hold()
 
