@@ -133,15 +133,15 @@ def find_road(origin, destination, is_fleet, ignore_units):
     return path
 
 
-def can_move(territory, origin, is_fleet):
-    if is_army(territory):
+def can_move(territory, origin, move_fleet):
+    if is_army(territory) or is_fleet(territory):
         return False
-    elif is_coast_or_sea(territory) and is_fleet:
+    elif is_coast_or_sea(territory) and move_fleet:
         if territory in find_sea_borders(origin):
             return True
         else:
             return False
-    elif is_land(territory) and not is_fleet:
+    elif is_land(territory) and not move_fleet:
         return True
     else:
         return False
@@ -222,7 +222,7 @@ def sure_attacks(loc, owner):
         attacks[0] *= 1.5
         if enemy == allied and enemy != 0:
             attacks[1] += 1
-        elif enemy < allied:
+        elif enemy < allied and enemy != 0:
             attacks[1] += 0.5
 
     # Finding the second borders
@@ -317,6 +317,7 @@ def roads_to_sc(owner):
 def zombie_attack(target, owner):
     list_attackers = []
     attackers = [0, 0, 0]
+    blocked_attackers = [0, 0, 0]
     for territory in occupied:
         if get_distance(territory, target) < 3:
             if is_enemy(owner, territory) and territory is not target:
@@ -330,6 +331,28 @@ def zombie_attack(target, owner):
             attackers[1] += 1
         elif distance == 3:
             attackers[2] += 1
+
+        # Consider 1/4 of the armies who cannot directly attack
+        distance = len(find_road(territory, target, not is_army(territory), True)) - 1
+        if distance == 1:
+            blocked_attackers[0] += 1
+        elif distance == 2:
+            blocked_attackers[1] += 1
+        elif distance == 3:
+            blocked_attackers[2] += 1
+
+    # Lock the armies who cannot attack to the number of borders of the territory
+    # else this would get too high and make little sense
+    border_number = len(find_borders(territory))
+    for i in range(3):
+        if border_number < 0:
+            blocked_attackers[i] += border_number
+            border_number = 0
+
+        # Add to the output vector
+        blocked_attackers[i] -= attackers[i]
+        if blocked_attackers[i] > 0:
+            attackers[i] += blocked_attackers[i]/4
 
     return attackers
 
@@ -366,6 +389,15 @@ def is_army(loc):
 
     return army_found
 
+
+# Returns true if there is a fleet in the region loc
+def is_fleet(loc):
+    fleet_found = False
+    for fleet in fleets:
+        if fleet[0] == loc:
+            fleet_found = True
+
+    return fleet_found
 
 # Creates the array of colours for the owner
 def owner_color(owner):
