@@ -283,7 +283,7 @@ def roads_to_sc(owner):
     for num,loc in enumerate(owned):
         # We call the zombie attack blocking all the owned SC
         attack_score = sure_attacks(loc, owner)
-        armies_number = zombie_attack(loc)
+        armies_number = zombie_attack(loc, owner)
 
         score_matrix[num][0] = attack_score[0]
         score_matrix[num][1] = attack_score[1]
@@ -314,12 +314,12 @@ def roads_to_sc(owner):
 # It returns a list of numbers, meaning how many can attack in the fist turn
 # How many in the second and how many in the third
 # These are not stacked!!
-def zombie_attack(target):
+def zombie_attack(target, owner):
     list_attackers = []
     attackers = [0, 0, 0]
     for territory in occupied:
         if get_distance(territory, target) < 3:
-            if is_enemy(find_owner(target), territory) and territory is not target:
+            if is_enemy(owner, territory) and territory is not target:
                 list_attackers.append(territory)
 
     for territory in list_attackers:
